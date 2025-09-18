@@ -1,0 +1,18 @@
+- item: chicken
+  price_per_kg: 800
+  currency: JMD
+- item: goat
+  price_per_kg: 1200
+  currency: JMD
+- item: rice
+  price_per_kg: 200
+  currency: JMD
+- item: kidney beans
+  price_per_can: 150
+  currency: JMD
+- item: coconut milk
+  price_per_can: 200
+  currency: JMD
+- item: jerk seasoning
+  price_per_jar: 500
+  currency: JMD

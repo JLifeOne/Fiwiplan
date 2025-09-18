@@ -1,0 +1,17 @@
+dishes:
+  - Jerk Chicken
+  - Curry Goat
+  - Rice and Peas
+  - Fried Plantain
+  - Steamed Cabbage
+beverages:
+  - Sorrel
+  - Ginger Beer
+  - Rum Punch
+equipment:
+  - Grill
+  - Large Pots
+  - Coolers
+portioning_rules:
+  - "For buffet or cookout style, increase portions by 25% to account for self-service."
+  - "Jerk chicken is a staple; plan for at least 1/2 lb per person."
