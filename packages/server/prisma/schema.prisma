@@ -26,6 +26,8 @@ model User {
   ads         Ad[]
   moderationCases ModerationCase[] @relation("reporter")
   reviewedModerationCases ModerationCase[] @relation("reviewer")
+  adInteractions          UserAdInteraction[]
+  adReviews               AdReview[]
 }
 
 model Plan {
@@ -34,6 +36,12 @@ model Plan {
   ownerId     String
   title       String
   description String?
+  attachments String[]
+  website     String?
+  phoneNumber String?
+  address     String?
+  category    String
+  subcategory String
   startAt     DateTime?
   endAt       DateTime?
   location    String?
@@ -134,25 +142,80 @@ model Ad {
   owner       User      @relation(fields: [ownerId], references: [id])
   ownerId     String
   title       String
-  media       String[]
+  description String?
+  attachments String[]
+  website     String?
+  phoneNumber String?
+  address     String?
   category    String
   subcategory String
-  geo         String?
   startAt     DateTime
   endAt       DateTime
-  status      String // PENDING, APPROVED, REJECTED
-  targets     Json?
+  status      AdStatus  @default(DRAFT)
+  demographics AdDemographics?
+  payment     AdPayment?
   stats       AdStat?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  interactions UserAdInteraction[]
+  reviews      AdReview[]
+}
+
+model AdDemographics {
+  ad         Ad       @relation(fields: [adId], references: [id])
+  adId       String   @id
+  minAge     Int?
+  maxAge     Int?
+  genders    Gender[]
+  locations  String[]
+  religions  String[]
+  interests  String[]
+}
+
+model AdPayment {
+  ad            Ad            @relation(fields: [adId], references: [id])
+  adId          String        @id
+  amount        Float
+  paymentMethod String
+  transactionId String        @unique
+  status        PaymentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+}
+
+enum AdStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
 }
 
 model AdStat {
   ad           Ad      @relation(fields: [adId], references: [id])
   adId         String  @id
-  impressions  Int
-  taps         Int
-  saves        Int
-  shares       Int
-  ctr          Float
+  impressions  Int     @default(0)
+  taps         Int     @default(0)
+  likes        Int     @default(0)
+  saves        Int     @default(0)
+  shares       Int     @default(0)
+  reviewsCount Int     @default(0)
+  averageRating Float  @default(0)
 }
 
 model ModerationCase {
@@ -166,4 +229,28 @@ model ModerationCase {
   reviewer     User?    @relation("reviewer", fields: [reviewerId], references: [id])
   reviewerId   String?
   resolvedAt   DateTime?
+}
+
+model UserAdInteraction {
+  user   User    @relation(fields: [userId], references: [id])
+  userId String
+  ad     Ad      @relation(fields: [adId], references: [id])
+  adId   String
+  liked  Boolean @default(false)
+  saved  Boolean @default(false)
+
+  @@id([userId, adId])
+}
+
+model AdReview {
+  id        String   @id @default(cuid())
+  ad        Ad       @relation(fields: [adId], references: [id])
+  adId      String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([adId, userId])
 }

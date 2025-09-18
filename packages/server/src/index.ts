@@ -6,6 +6,9 @@ import planRoutes from './routes/plans';
 import aiRoutes from './routes/ai';
 import taskRoutes from './routes/tasks';
 import budgetRoutes from './routes/budget';
+import adRoutes from './routes/ads';
+import adminRoutes from './routes/admin';
+import userAdsRoutes from './routes/userAds';
 import { PrismaClient } from '@prisma/client';
 
 const app = express();
@@ -26,6 +29,9 @@ app.use('/api/plans', planRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/budget', budgetRoutes);
+app.use('/api/ads', adRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/user-ads', userAdsRoutes);
 
 app.get('/api/messages/:planId', async (req, res) => {
   const { planId } = req.params;
