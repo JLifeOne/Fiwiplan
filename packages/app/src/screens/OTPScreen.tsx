@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import API_URL from '../config';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OTP'>;
 
@@ -11,8 +12,24 @@ const OTPScreen = ({ route, navigation }: Props) => {
   const [otp, setOtp] = useState('');
 
   const handleVerify = async () => {
-    // TODO: Call API to verify OTP
-    navigation.navigate('Home');
+    try {
+      const response = await fetch(`${API_URL}/auth/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, otp }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        // In a real app, you'd store the JWT here
+        navigation.navigate('Home');
+      } else {
+        Alert.alert('Verification Failed', data.error || 'Something went wrong');
+      }
+    } catch (error) {
+      Alert.alert('Verification Error', 'An unexpected error occurred.');
+    }
   };
 
   return (

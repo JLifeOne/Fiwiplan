@@ -38,4 +38,21 @@ router.post('/', async (req, res) => {
   }
 });
 
+// GET /api/plans/:id
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const plan = await prisma.plan.findUnique({
+      where: { id },
+    });
+    if (plan) {
+      res.json(plan);
+    } else {
+      res.status(404).json({ error: 'Plan not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
 export default router;

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import API_URL from '../config';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreatePlan'>;
 
@@ -12,9 +13,26 @@ const CreatePlanScreen = ({ navigation }: Props) => {
   const [date, setDate] = useState('');
   const [location, setLocation] = useState('');
 
-  const handleCreatePlan = () => {
-    // TODO: Call API to create plan
-    navigation.goBack();
+  const handleCreatePlan = async () => {
+    // This is a placeholder. In a real app, you'd get the user ID from auth state.
+    const userId = "clxsh9wmp00007g1gdlq3x3e0"; 
+    try {
+      const response = await fetch(`${API_URL}/plans`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, description, date, location, userId }),
+      });
+      if (response.ok) {
+        navigation.goBack();
+      } else {
+        const data = await response.json();
+        Alert.alert('Failed to create plan', data.error || 'Something went wrong');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'An unexpected error occurred');
+    }
   };
 
   return (
@@ -37,6 +55,7 @@ const CreatePlanScreen = ({ navigation }: Props) => {
         value={date}
         onChangeText={setDate}
         style={styles.input}
+        placeholder="YYYY-MM-DD"
       />
       <TextInput
         label="Location"
