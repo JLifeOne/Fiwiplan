@@ -45,6 +45,7 @@ model Plan {
   messages    Message[]
   guests      Guest[]
   contributions Contribution[]
+  budgets     Budget[]
 }
 
 model PlanMember {
@@ -98,8 +99,22 @@ model Guest {
   name       String
   contact    String?
   rsvpStatus String
-  adults     Int
-  kids       Int
+}
+
+model Budget {
+  id        String     @id @default(cuid())
+  plan      Plan       @relation(fields: [planId], references: [id])
+  planId    String
+  title     String
+  amount    Float
+  category  String
+  type      BudgetType
+  createdAt DateTime   @default(now())
+}
+
+enum BudgetType {
+  INCOME
+  EXPENSE
 }
 
 model Contribution {
