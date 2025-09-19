@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, FlatList, Alert } from 'react-native';
 import { Text, Button, Card } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import API_URL from '../config';
+import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -15,31 +16,27 @@ interface Plan {
 
 const HomeScreen = ({ navigation }: Props) => {
   const [plans, setPlans] = useState<Plan[]>([]);
+  const { api, user, logout } = useAuth();
 
-  const fetchPlans = async () => {
+  const fetchPlans = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/plans`);
-      const data = await response.json();
-      if (response.ok) {
-        setPlans(data);
-      } else {
-        Alert.alert('Error', 'Failed to fetch plans');
-      }
+      const data = await api<Plan[]>('/plans');
+      setPlans(data);
     } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred');
+      const message = error instanceof Error ? error.message : 'Failed to fetch plans';
+      Alert.alert('Error', message);
     }
-  };
+  }, [api]);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+  useFocusEffect(
+    useCallback(() => {
       fetchPlans();
-    });
-
-    return unsubscribe;
-  }, [navigation]);
+    }, [fetchPlans]),
+  );
 
   return (
     <View style={styles.container}>
+      <Text style={styles.greeting}>Hi {user?.displayName || user?.phone || 'Planner'}!</Text>
       <FlatList
         data={plans}
         keyExtractor={(item) => item.id}
@@ -56,6 +53,51 @@ const HomeScreen = ({ navigation }: Props) => {
       >
         Create Plan
       </Button>
+      <Button
+        mode="outlined"
+        onPress={() => navigation.navigate('AIChatParser')}
+        style={styles.button}
+      >
+        Create Plan with AI Chat
+      </Button>
+      <Button
+        mode="outlined"
+        onPress={() => navigation.navigate('AIMenuPlanner')}
+        style={styles.button}
+      >
+        AI Menu Planner
+      </Button>
+      <Button
+        mode="contained"
+        onPress={() => navigation.navigate('Ads')}
+        style={styles.button}
+      >
+        Browse Ads
+      </Button>
+      <Button
+        mode="contained"
+        onPress={() => navigation.navigate('MyAds')}
+        style={styles.button}
+      >
+        My Ads
+      </Button>
+      <Button
+        mode="contained"
+        onPress={() => navigation.navigate('Profile')}
+        style={styles.button}
+      >
+        My Profile
+      </Button>
+      <Button
+        mode="contained"
+        onPress={() => navigation.navigate('Contacts')}
+        style={styles.button}
+      >
+        Find Friends
+      </Button>
+      <Button mode="text" onPress={logout} style={styles.logoutButton}>
+        Log Out
+      </Button>
     </View>
   );
 };
@@ -64,11 +106,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  greeting: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 8,
+  },
   card: {
     margin: 10,
   },
   button: {
     margin: 20,
+  },
+  logoutButton: {
+    alignSelf: 'center',
+    marginTop: 10,
   },
 });
 

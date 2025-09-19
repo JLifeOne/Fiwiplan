@@ -3,7 +3,7 @@ import { View, StyleSheet, Alert } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import API_URL from '../config';
+import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreatePlan'>;
 
@@ -12,26 +12,38 @@ const CreatePlanScreen = ({ navigation }: Props) => {
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [location, setLocation] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { user, api } = useAuth();
 
   const handleCreatePlan = async () => {
-    // This is a placeholder. In a real app, you'd get the user ID from auth state.
-    const userId = "clxsh9wmp00007g1gdlq3x3e0"; 
+    if (submitting) {
+      return;
+    }
+
+    if (!user?.id) {
+      Alert.alert('Unavailable', 'You must be logged in to create a plan.');
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      const response = await fetch(`${API_URL}/plans`, {
+      await api('/plans', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title, description, date, location, userId }),
+        body: JSON.stringify({
+          title,
+          description,
+          date,
+          location,
+          userId: user.id,
+        }),
       });
-      if (response.ok) {
-        navigation.goBack();
-      } else {
-        const data = await response.json();
-        Alert.alert('Failed to create plan', data.error || 'Something went wrong');
-      }
+
+      navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred');
+      const message = error instanceof Error ? error.message : 'Failed to create plan';
+      Alert.alert('Error', message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -63,7 +75,13 @@ const CreatePlanScreen = ({ navigation }: Props) => {
         onChangeText={setLocation}
         style={styles.input}
       />
-      <Button mode="contained" onPress={handleCreatePlan} style={styles.button}>
+      <Button
+        mode="contained"
+        onPress={handleCreatePlan}
+        style={styles.button}
+        loading={submitting}
+        disabled={submitting}
+      >
         Create Plan
       </Button>
     </View>

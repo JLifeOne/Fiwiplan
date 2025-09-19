@@ -9,7 +9,12 @@ import budgetRoutes from './routes/budget';
 import adRoutes from './routes/ads';
 import adminRoutes from './routes/admin';
 import userAdsRoutes from './routes/userAds';
-import { PrismaClient } from '@prisma/client';
+import myAdsRoutes from './routes/myAds';
+import profileRoutes from './routes/profile';
+import contactsRoutes from './routes/contacts';
+import adInteractionRoutes from './routes/adInteractions';
+import eventRoutes from './routes/events';
+import prisma from './lib/prisma';
 
 const app = express();
 const server = http.createServer(app);
@@ -20,7 +25,6 @@ const io = new Server(server, {
   }
 });
 
-const prisma = new PrismaClient();
 const port = 3000;
 
 app.use(express.json());
@@ -32,6 +36,11 @@ app.use('/api/budget', budgetRoutes);
 app.use('/api/ads', adRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/user-ads', userAdsRoutes);
+app.use('/api/my-ads', myAdsRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/contacts', contactsRoutes);
+app.use('/api/interactions', adInteractionRoutes);
+app.use('/api/events', eventRoutes);
 
 app.get('/api/messages/:planId', async (req, res) => {
   const { planId } = req.params;

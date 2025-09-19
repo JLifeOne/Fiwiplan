@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { TextInput, Button, Text, Card, Title, Paragraph, ActivityIndicator, useTheme } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import API_URL from '../config';
+import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AIMenuPlanner'>;
 
@@ -17,31 +17,29 @@ const AIMenuPlannerScreen = ({ navigation }: Props) => {
   const [menuPlan, setMenuPlan] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { api } = useAuth();
 
   const handleGenerateMenu = async () => {
     setLoading(true);
     setError(null);
     setMenuPlan(null);
     try {
-      const response = await fetch(`${API_URL}/ai/menu`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-              eventType,
-              adults: parseInt(adults, 10),
-              kids: parseInt(kids, 10),
-              mealStyle,
-              culture,
-          }),
+      const payload = {
+        eventType,
+        adults: parseInt(adults, 10),
+        kids: parseInt(kids, 10),
+        mealStyle,
+        culture,
+      };
+
+      const data = await api('/ai/menu', {
+        method: 'POST',
+        body: JSON.stringify(payload),
       });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Something went wrong. Please try again.');
-      }
-      const data = await response.json();
       setMenuPlan(data);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to generate menu.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -55,8 +53,8 @@ const AIMenuPlannerScreen = ({ navigation }: Props) => {
       <TextInput label="Kids" value={kids} onChangeText={setKids} keyboardType="numeric" style={styles.input} />
       <TextInput label="Meal Style" value={mealStyle} onChangeText={setMealStyle} style={styles.input} />
       <TextInput label="Culture" value={culture} onChangeText={setCulture} style={styles.input} />
-      <Button mode="contained" onPress={handleGenerateMenu} style={styles.button} disabled={loading}>
-        {loading ? 'Generating...' : 'Generate Menu'}
+      <Button mode="contained" onPress={handleGenerateMenu} style={styles.button} loading={loading} disabled={loading}>
+        Generate Menu
       </Button>
 
       {loading && <ActivityIndicator animating={true} color={colors.primary} size="large" style={styles.loader} />}

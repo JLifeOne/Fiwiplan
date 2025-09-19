@@ -1,11 +1,10 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // GET /api/plans
-router.get('/', async (req, res) => {
+router.get('/', async (_req, res) => {
   // For now, we'll return all plans. In a real app, this would be user-specific.
   try {
     const plans = await prisma.plan.findMany();

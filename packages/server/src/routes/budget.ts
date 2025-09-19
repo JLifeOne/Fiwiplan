@@ -1,9 +1,7 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 
 const router = express.Router();
-const prisma = new PrismaClient();
-
 // Get all budget items for a plan
 router.get('/', async (req, res) => {
   const { planId } = req.query;
@@ -20,7 +18,6 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch budget items', error });
   }
 });
-
 // Create a new budget item
 router.post('/', async (req, res) => {
   const { planId, title, amount, category, type } = req.body;
@@ -42,7 +39,6 @@ router.post('/', async (req, res) => {
     res.status(500).json({ message: 'Failed to create budget item', error });
   }
 });
-
 // Update a budget item
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
@@ -62,7 +58,6 @@ router.put('/:id', async (req, res) => {
     res.status(500).json({ message: 'Failed to update budget item', error });
   }
 });
-
 // Delete a budget item
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
@@ -75,5 +70,4 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: 'Failed to delete budget item', error });
   }
 });
-
 export default router;

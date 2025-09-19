@@ -11,23 +11,52 @@ datasource db {
 }
 
 model User {
-  id          String    @id @default(cuid())
-  displayName String?
-  phone       String?   @unique
-  email       String?   @unique
-  locale      String?
-  preferences Json?
-  roles       String[]
-  plans       Plan[]
-  planMembers PlanMember[]
-  tasks       Task[]
-  messages    Message[]
-  contributions Contribution[]
-  ads         Ad[]
-  moderationCases ModerationCase[] @relation("reporter")
+  id                      String    @id @default(cuid())
+  username                String?   @unique
+  displayName             String?
+  phone                   String    @unique
+  email                   String?   @unique
+  profilePhoto            String?
+  country                 String?
+  city                    String?
+  town                    String?
+  locale                  String?
+  preferences             Json?
+  roles                   String[]
+  plans                   Plan[]
+  planMembers             PlanMember[]
+  tasks                   Task[]
+  messages                Message[]
+  contributions           Contribution[]
+  ads                     Ad[]
+  moderationCases         ModerationCase[] @relation("reporter")
   reviewedModerationCases ModerationCase[] @relation("reviewer")
   adInteractions          UserAdInteraction[]
   adReviews               AdReview[]
+  adLikes                 AdLike[]
+  adSaves                 AdSave[]
+  contacts                Contact[]
+}
+
+model Contact {
+  userId          String
+  contactUserId   String
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@id([userId, contactUserId])
+}
+
+model OtpChallenge {
+  id         String   @id @default(cuid())
+  phone      String   @unique
+  code       String
+  attempts   Int      @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([expiresAt])
 }
 
 model Plan {
@@ -54,6 +83,22 @@ model Plan {
   guests      Guest[]
   contributions Contribution[]
   budgets     Budget[]
+  events      Event[]
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  plan        Plan      @relation(fields: [planId], references: [id])
+  planId      String
+  title       String
+  description String?
+  startAt     DateTime
+  endAt       DateTime
+  location    String?
+  isAllDay    Boolean   @default(false)
+  rrule       String?   // For recurrence rules (e.g., RRULE:FREQ=WEEKLY;BYDAY=MO,WE)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model PlanMember {
@@ -159,6 +204,8 @@ model Ad {
   updatedAt   DateTime  @updatedAt
   interactions UserAdInteraction[]
   reviews      AdReview[]
+  likes        AdLike[]
+  saves        AdSave[]
 }
 
 model AdDemographics {
@@ -244,13 +291,31 @@ model UserAdInteraction {
 
 model AdReview {
   id        String   @id @default(cuid())
-  ad        Ad       @relation(fields: [adId], references: [id])
+  ad        Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
   adId      String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   rating    Int
   comment   String?
   createdAt DateTime @default(now())
 
   @@unique([adId, userId])
+}
+
+model AdLike {
+  ad     Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
+  adId   String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@id([adId, userId])
+}
+
+model AdSave {
+  ad     Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
+  adId   String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@id([adId, userId])
 }

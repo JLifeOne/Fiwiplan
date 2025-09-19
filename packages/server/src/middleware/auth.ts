@@ -1,15 +1,35 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload, TokenExpiredError } from 'jsonwebtoken';
+import { JWT_SECRET } from '../config/env';
+
+interface AuthPayload extends JwtPayload {
+  id: string;
+  phone?: string;
+}
 
 export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const authHeader = req.headers.authorization;
 
-  if (token == null) return res.sendStatus(401);
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authorization token missing' });
+  }
 
-  jwt.verify(token, process.env.JWT_SECRET as string, (err: any, user: any) => {
-    if (err) return res.sendStatus(403);
-    (req as any).user = user;
-    next();
-  });
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as AuthPayload;
+
+    if (!decoded || !decoded.id) {
+      return res.status(403).json({ error: 'Invalid token payload' });
+    }
+
+    (req as any).user = { id: decoded.id, phone: decoded.phone };
+    return next();
+  } catch (error) {
+    if (error instanceof TokenExpiredError) {
+      return res.status(401).json({ error: 'Token expired' });
+    }
+
+    return res.status(401).json({ error: 'Invalid token' });
+  }
 };
